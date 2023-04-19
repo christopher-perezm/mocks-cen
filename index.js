@@ -28,13 +28,6 @@ sequelize
     .then(() => {
         console.log('Conexión establecida con la base de datos');
         app.listen(PORT, () => {
-            generateAndInsertGxErv().then(r => r);
-            generateAndInsertGxRealToday().then(r => r);
-            generateAndInsertGxReal().then(r => r);
-
-            generateAndInsertDemandForecast().then(r => r);
-            generateAndInsertDemandRealToday().then(r => r);
-            generateAndInsertDemandaReal().then(r => r);
             console.log(`Servidor corriendo en el puerto ${PORT}`);
         });
 

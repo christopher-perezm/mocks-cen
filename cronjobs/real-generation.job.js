@@ -9,7 +9,7 @@ const generateAndInsertGxReal = async () => {
     const dates = [yesterday, twoDaysAgo];
 
     for (const date of dates) {
-        const data = generateData(date.toDate(), 24);
+        const data = generateData(date, 24);
         await insertData(date, data);
     }
 };
@@ -18,7 +18,7 @@ const generateAndInsertGxRealToday = async () => {
     const santiagoTime = moment().tz('America/Santiago');
     const hour = parseInt(santiagoTime.format('H'));
 
-    const data = generateData(santiagoTime.toDate(), hour === 0 ? 24 : hour);
+    const data = generateData(santiagoTime, hour === 0 ? 24 : hour);
     await insertDataToday(data);
 };
 const generateData = (date, limit) => {
@@ -26,21 +26,19 @@ const generateData = (date, limit) => {
     let tecnologia = 'Solar';
 
     for (let i = 1; i <= limit; i++) {
-        const fecha = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         let generacion = 0.15;
         if (i < 7 || i >= 18) {
             generacion = Math.random() * 2;
         } else if (i < 18) {
             generacion = 705 + (Math.random() * 4020);
         }
-        data.push({fecha, hora: i, generacion, tecnologia});
+        data.push({fecha: date, hora: i, generacion, tecnologia});
     }
 
     tecnologia = 'Eólica';
     for (let i = 1; i <= limit; i++) {
-        const fecha = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         let generacion = 850 + Math.random() * 1300;
-        data.push({fecha, hora: i, generacion, tecnologia});
+        data.push({fecha: date, hora: i, generacion, tecnologia});
     }
 
     return data;
@@ -50,7 +48,7 @@ const insertData = async (fecha, data) => {
     try {
         const result = await GenerationReal.count({
             where: {
-                fecha: fecha,
+                fecha: fecha.format('YYYY-MM-DD'),
             },
             raw: true,
         });
@@ -58,7 +56,7 @@ const insertData = async (fecha, data) => {
         if (result === 0) {
             const promises = data.map(async (item) => {
                 await GenerationReal.create({
-                    fecha: item.fecha,
+                    fecha: item.fecha.format('YYYY-MM-DD'),
                     hora: item.hora,
                     generacion: item.generacion,
                     tecnologia: item.tecnologia,
@@ -78,7 +76,7 @@ const insertDataToday = async (data) => {
         const promises = data.map(async (item) => {
             const result = await GenerationReal.count({
                 where: {
-                    fecha: item.fecha,
+                    fecha: item.fecha.format('YYYY-MM-DD'),
                     hora: item.hora,
                     tecnologia: item.tecnologia,
                 },
@@ -88,7 +86,7 @@ const insertDataToday = async (data) => {
             if (result === 0) {
                 inserts = true;
                 await GenerationReal.create({
-                    fecha: item.fecha,
+                    fecha: item.fecha.format('YYYY-MM-DD'),
                     hora: item.hora,
                     generacion: item.generacion,
                     tecnologia: item.tecnologia,
@@ -105,12 +103,18 @@ const insertDataToday = async (data) => {
     }
 };
 
-const realGenerationJob = cron.schedule('0 2 * * *', async () => {
+const realGenerationJob = cron.schedule('0 5 4 * * *', async () => {
+    const fecha = moment.tz('America/Santiago');
+    console.log("> Inicio Job demanda real hora, " + fecha.format("YYYY-mm-DD HH:mm:SS"));
     await generateAndInsertGxReal();
+    console.log("> Fin Job demanda real hora");
 });
 
-const realGenerationJobToday = cron.schedule('0 3 * * * *', async () => {
+const realGenerationJobToday = cron.schedule('30 1 * * * *', async () => {
+    const fecha = moment.tz('America/Santiago');
+    console.log("> Inicio Job generacion real hora, " + fecha.format("YYYY-mm-DD HH:mm:SS"));
     await generateAndInsertGxRealToday();
+    console.log("> Fin Job generacion real hora");
 });
 
 module.exports = {

@@ -1,10 +1,12 @@
 const cron = require('node-cron');
 const {ForecastDemand} = require('../models/demand-forecast.model');
+const moment = require('moment-timezone');
 
 const generateAndInsertDemandForecast = async () => {
-    const now = new Date();
-    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const now = moment().tz('America/Santiago');
+    const yesterday = now.clone().subtract(1, 'day');
+    const tomorrow = now.clone().add(1, 'day');
+
     const dates = [yesterday, now, tomorrow];
 
     for (const date of dates) {
@@ -16,9 +18,8 @@ const generateData = (date) => {
     const data = [];
 
     for (let i = 1; i <= 24; i++) {
-        const fecha = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         let demanda = 7600 + (Math.random() * 2300);
-        data.push({fecha, hora: i, demanda});
+        data.push({fecha: date, hora: i, demanda});
     }
 
     return data;
@@ -28,7 +29,7 @@ const insertData = async (fecha, data) => {
     try {
         const result = await ForecastDemand.count({
             where: {
-                fecha: fecha,
+                fecha: fecha.format('YYYY-MM-DD'),
             },
             raw: true,
         });
@@ -36,7 +37,7 @@ const insertData = async (fecha, data) => {
         if (result === 0) {
             const promises = data.map(async (item) => {
                 await ForecastDemand.create({
-                    fecha: item.fecha,
+                    fecha: item.fecha.format('YYYY-MM-DD'),
                     hora: item.hora,
                     demanda: item.demanda
                 });
@@ -50,7 +51,10 @@ const insertData = async (fecha, data) => {
 };
 
 const forecastDemandJob = cron.schedule('0 0 * * *', async () => {
+    const fecha = moment.tz('America/Santiago');
+    console.log("> Inicio Job demanda pronosticada hora, " + fecha.format("YYYY-mm-DD HH:mm:SS"));
     await generateAndInsertDemandForecast();
+    console.log("> Fin Job demanda pronosticada hora");
 });
 
 module.exports = {forecastDemandJob: forecastDemandJob, generateAndInsertDemandForecast};

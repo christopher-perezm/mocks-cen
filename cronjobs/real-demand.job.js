@@ -9,7 +9,7 @@ const generateAndInsertDemandaReal = async () => {
     const dates = [yesterday, twoDaysAgo];
 
     for (const date of dates) {
-        const data = generateData(date.toDate(), 24);
+        const data = generateData(date, 24);
         await insertData(date, data);
     }
 };
@@ -26,9 +26,8 @@ const generateData = (date, limit) => {
     const data = [];
 
     for (let i = 1; i <= limit; i++) {
-        const fecha = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         let demanda = 7600 + (Math.random() * 2300);
-        data.push({fecha, hora: i, demanda});
+        data.push({fecha: date, hora: i, demanda});
     }
 
     return data;
@@ -38,7 +37,7 @@ const insertData = async (fecha, data) => {
     try {
         const result = await RealDemand.count({
             where: {
-                fecha: fecha,
+                fecha: fecha.format('YYYY-MM-DD'),
             },
             raw: true,
         });
@@ -46,7 +45,7 @@ const insertData = async (fecha, data) => {
         if (result === 0) {
             const promises = data.map(async (item) => {
                 await RealDemand.create({
-                    fecha: item.fecha,
+                    fecha: item.fecha.format('YYYY-MM-DD'),
                     hora: item.hora,
                     demanda: item.demanda
                 });
@@ -65,7 +64,7 @@ const insertDataToday = async (data) => {
         const promises = data.map(async (item) => {
             const result = await RealDemand.count({
                 where: {
-                    fecha: item.fecha,
+                    fecha: item.fecha.format('YYYY-MM-DD'),
                     hora: item.hora
                 },
                 raw: true,
@@ -74,7 +73,7 @@ const insertDataToday = async (data) => {
             if (result === 0) {
                 inserts = true;
                 await RealDemand.create({
-                    fecha: item.fecha,
+                    fecha: item.fecha.format('YYYY-MM-DD'),
                     hora: item.hora,
                     demanda: item.demanda
                 });
@@ -90,11 +89,16 @@ const insertDataToday = async (data) => {
     }
 };
 
-const realDemandJob = cron.schedule('0 2 * * *', async () => {
+const realDemandJob = cron.schedule('0 5 4 * * *', async () => {
+    const fecha = moment.tz('America/Santiago');
+    console.log("> Inicio Job demanda real ayer y antier, "+ fecha.format("YYYY-mm-DD HH:mm:SS"));
     await generateAndInsertDemandaReal();
+    console.log("> Fin Job demanda real ayer y antier");
 });
 
 const realDemandJobToday = cron.schedule('0 3 * * * *', async () => {
+    const fecha = moment.tz('America/Santiago');
+    console.log("> Inicio Job demanda real hora, " + fecha.format("YYYY-mm-DD HH:mm:SS"));
     await generateAndInsertDemandRealToday();
 });
 
