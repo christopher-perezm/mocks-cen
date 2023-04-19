@@ -3,10 +3,10 @@ const router = express.Router();
 
 const generationController = require('../services/generation.service');
 
-router.delete('/real/:fecha', generationController.deleteGenerationsReal);
-router.delete('/pronosticada/:fecha', generationController.deleteGenerationsForecast);
-router.get('/real/', generationController.getGenerationsReal);
-router.get('/real/max/', generationController.getGenerationsRealMax);
-router.get('/pronosticada/', generationController.getGenerationsForecasts);
+router.delete('/generacion-real/:fecha', generationController.deleteGenerationsReal);
+router.delete('/generacion-programada/:fecha', generationController.deleteGenerationsForecast);
+router.get('/generacion-real/v3/sum/', generationController.getGenerationsReal);
+router.get('/generacion-real/maxima-mensual/v3/findAll/', generationController.getGenerationsRealMax);
+router.get('/generacion-programada/v3/sum/', generationController.getGenerationsForecasts);
 
 module.exports = router;

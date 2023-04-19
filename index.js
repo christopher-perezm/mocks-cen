@@ -18,8 +18,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Rutas
-app.use('/demands', demandRouter);
-app.use('/generations', generationRouter);
+app.use('/', demandRouter);
+app.use('/', generationRouter);
 
 // Iniciar servidor
 const PORT = process.env.PORT || 3000;
