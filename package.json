@@ -1,0 +1,23 @@
+{
+  "name": "apis-cen",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.43",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.2.3",
+    "node-cron": "^3.0.2",
+    "sequelize": "^6.31.0"
+  }
+}
