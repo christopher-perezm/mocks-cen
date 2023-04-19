@@ -1,6 +1,6 @@
 const {RealDemand} = require('../models/demand-real.model');
 const {ForecastDemand} = require('../models/demand-forecast.model');
-const {Op} = require('sequelize');
+const {Op, Sequelize} = require('sequelize');
 const moment = require('moment-timezone');
 
 exports.getRealDemands = async (req, res) => {
@@ -98,6 +98,37 @@ exports.getForecastDemands = async (req, res) => {
             content: rows
         };
         res.json(response);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({message: 'Error getting generations by date range'});
+    }
+};
+
+exports.getResumeDemands = async (req, res) => {
+    try {
+        const startDate = moment(req.query.startDate).startOf('day');
+        const endDate = moment(req.query.endDate).endOf('day');
+
+        const rows = await RealDemand.findAll({
+            attributes: [
+                'fecha',
+                'hora',
+                [Sequelize.literal('demanda'), 'real_demand'],
+                [Sequelize.literal('(SELECT demanda FROM forecast_demands WHERE fecha = real_demand.fecha AND hora = real_demand.hora)'), 'forecast_demand'],
+                [Sequelize.literal('(100 * abs((SELECT demanda FROM forecast_demands WHERE fecha = real_demand.fecha AND hora = real_demand.hora) - demanda) / (SELECT demanda FROM forecast_demands WHERE fecha = real_demand.fecha AND hora = real_demand.hora))'), 'mape'],
+            ],
+            where: {
+                fecha: {
+                    [Op.between]: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]
+                }
+            },
+            order: [
+                ['fecha', 'ASC'],
+                ['hora', 'ASC'],
+            ],
+        });
+
+        res.json(rows);
     } catch (err) {
         console.error(err);
         res.status(500).json({message: 'Error getting generations by date range'});

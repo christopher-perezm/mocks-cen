@@ -1,5 +1,5 @@
 const {GenerationForecast} = require('../models/generation-forecast.model');
-const {Op} = require('sequelize');
+const {Op, Sequelize} = require('sequelize');
 const moment = require('moment-timezone');
 const {GenerationReal} = require('../models/generation-real.model');
 
@@ -145,4 +145,39 @@ exports.deleteGenerationsReal = (req, res) => {
             console.error('Error al eliminar la generación real:', err);
             res.status(500).send({message: 'Error al eliminar la generación real'});
         });
+};
+
+exports.getResumeGeneration = async (req, res) => {
+    try {
+        const startDate = moment(req.query.startDate).startOf('day');
+        const endDate = moment(req.query.endDate).endOf('day');
+        const technology = req.query.technology;
+
+        const rows = await GenerationReal.findAll({
+            attributes: [
+                'fecha',
+                'hora',
+                [Sequelize.literal('generacion'), 'real_generacion'],
+                [Sequelize.literal('(SELECT generacion FROM forecast_generations WHERE fecha = real_generation.fecha AND hora = real_generation.hora AND tecnologia = real_generation.tecnologia)'), 'forecast_generation'],
+                [Sequelize.literal('(100 * abs((SELECT generacion FROM forecast_generations WHERE fecha = real_generation.fecha AND hora = real_generation.hora  AND tecnologia = real_generation.tecnologia) - generacion) / (SELECT generacion FROM forecast_generations WHERE fecha = real_generation.fecha AND hora = real_generation.hora  AND tecnologia = real_generation.tecnologia))'), 'mape'],
+            ],
+            where: {
+                fecha: {
+                    [Op.between]: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]
+                },
+                tecnologia: {
+                    [Op.eq]: technology
+                }
+            },
+            order: [
+                ['fecha', 'ASC'],
+                ['hora', 'ASC'],
+            ],
+        });
+
+        res.json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({message: 'Error getting generations by date range'});
+    }
 };

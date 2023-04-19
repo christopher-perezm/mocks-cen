@@ -8,5 +8,6 @@ router.delete('/generacion-programada/:fecha', generationController.deleteGenera
 router.get('/generacion-real/v3/sum/', generationController.getGenerationsReal);
 router.get('/generacion-real/maxima-mensual/v3/findAll/', generationController.getGenerationsRealMax);
 router.get('/generacion-programada/v3/sum/', generationController.getGenerationsForecasts);
+router.get('/generacion/v3/resumen/', generationController.getResumeGeneration);
 
 module.exports = router;
