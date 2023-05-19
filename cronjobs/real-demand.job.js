@@ -18,6 +18,9 @@ const generateAndInsertDemandRealToday = async () => {
     const santiagoTime = moment().tz('America/Santiago');
     const hour = parseInt(santiagoTime.format('H'));
 
+    //const santiagoTime = moment().tz('America/Santiago').subtract(1, 'day');
+    //const hour = 24;
+
     const data = generateData(santiagoTime, hour === 0 ? 24 : hour);
     await insertDataToday(data);
 };

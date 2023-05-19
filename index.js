@@ -34,6 +34,8 @@ sequelize
         app.listen(PORT, () => {
             generateAndInsertGxRealToday().then(r => r);
             generateAndInsertDemandRealToday().then(r => r);
+            generateAndInsertDemandForecast().then(r =>r);
+            generateAndInsertGxErv().then(r =>r);
             console.log(`Servidor corriendo en el puerto ${PORT}`);
         });
     })

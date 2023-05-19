@@ -33,6 +33,12 @@ const generateData = (date) => {
         data.push({fecha: date, hora: i, generacion, tecnologia});
     }
 
+    tecnologia = 'Pasada';
+    for (let i = 1; i <= 24; i++) {
+        let generacion = 650 + Math.random() * 900;
+        data.push({fecha: date, hora: i, generacion, tecnologia});
+    }
+
     return data;
 };
 

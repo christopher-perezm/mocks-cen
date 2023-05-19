@@ -17,10 +17,13 @@ const generateAndInsertGxReal = async () => {
 const generateAndInsertGxRealToday = async () => {
     const santiagoTime = moment().tz('America/Santiago');
     const hour = parseInt(santiagoTime.format('H'));
+    //const santiagoTime = moment().tz('America/Santiago').subtract(1, 'day');
+    //const hour = 24;
 
     const data = generateData(santiagoTime, hour === 0 ? 24 : hour);
     await insertDataToday(data);
 };
+
 const generateData = (date, limit) => {
     const data = [];
     let tecnologia = 'Solar';
@@ -38,6 +41,12 @@ const generateData = (date, limit) => {
     tecnologia = 'Eólica';
     for (let i = 1; i <= limit; i++) {
         let generacion = 850 + Math.random() * 1300;
+        data.push({fecha: date, hora: i, generacion, tecnologia});
+    }
+
+    tecnologia = 'Pasada';
+    for (let i = 1; i <= limit; i++) {
+        let generacion = 650 + Math.random() * 900;
         data.push({fecha: date, hora: i, generacion, tecnologia});
     }
 
