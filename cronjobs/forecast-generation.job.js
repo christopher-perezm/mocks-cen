@@ -9,10 +9,15 @@ const generateAndInsertGxErv = async () => {
     const dates = [yesterday, now, tomorrow];
 
     for (const date of dates) {
-        const data = generateData(date);
-        await insertData(date, data);
+        await generateAndInsertGxErvDate(date);
     }
 };
+
+const generateAndInsertGxErvDate = async (date) => {
+    const data = generateData(date);
+    await insertData(date, data);
+};
+
 const generateData = (date) => {
     const data = [];
     let tecnologia = 'Solar';
@@ -75,4 +80,4 @@ const forecastGenerationJob = cron.schedule('0 0 * * *', async () => {
     console.log("> Fin Job generacion pronosticada hora");
 });
 
-module.exports = {generationJob: forecastGenerationJob, generateAndInsertGxErv};
+module.exports = {generationJob: forecastGenerationJob, generateAndInsertGxErvDate};

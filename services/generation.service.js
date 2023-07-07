@@ -3,6 +3,15 @@ const {Op, Sequelize} = require('sequelize');
 const moment = require('moment-timezone');
 const {GenerationReal} = require('../models/generation-real.model');
 
+const {
+    generateAndInsertGxErvDate
+} = require('../cronjobs/forecast-generation.job');
+const {
+    generateAndInsertGxRealDate
+} = require('../cronjobs/real-generation.job');
+const {generateAndInsertDemandForecastDate} = require("../cronjobs/forecast-demand.job");
+
+
 exports.getGenerationsForecasts = async (req, res) => {
     try {
         const startDate = moment(req.query.startDate).startOf('day').toDate();
@@ -179,5 +188,52 @@ exports.getResumeGeneration = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({message: 'Error getting generations by date range'});
+    }
+};
+
+exports.saveGenerationsReal = async (req, res) => {
+    const santiagoTime = moment().tz('America/Santiago');
+    const hour = parseInt(santiagoTime.format('H'));
+    const now = santiagoTime.startOf('day');
+
+    let startDate = moment(req.query.date).startOf('day');
+    let endDate = moment(req.query.endDate ? req.query.endDate : req.query.date).startOf('day');
+
+    startDate = moment.min(startDate, now);
+    endDate = moment.min(endDate, now);
+
+    if (startDate.isSameOrBefore(endDate)) {
+        const currentDate = startDate.clone();
+
+        while (currentDate.isSameOrBefore(endDate)) {
+            if(currentDate.isSame(now)) {
+                await generateAndInsertGxRealDate(currentDate, hour);
+            } else {
+                await generateAndInsertGxRealDate(currentDate);
+            }
+            currentDate.add(1, 'day');
+        }
+
+        res.json("Generates sucessfully");
+    } else {
+        res.json('La fecha de inicio no es menor que la fecha de fin.');
+    }
+};
+
+exports.saveGenerationsForecast = async (req, res) => {
+    const startDate = moment(req.query.date).startOf('day');
+    const endDate = moment(req.query.endDate ? req.query.endDate : req.query.date).startOf('day');
+
+    if (startDate.isSameOrBefore(endDate)) {
+        const currentDate = startDate.clone();
+
+        while (currentDate.isSameOrBefore(endDate)) {
+            await generateAndInsertGxErvDate(currentDate);
+            currentDate.add(1, 'day');
+        }
+
+        res.json("Generates sucessfully");
+    } else {
+        res.json('La fecha de inicio no es menor que la fecha de fin.');
     }
 };

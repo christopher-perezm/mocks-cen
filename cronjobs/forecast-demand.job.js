@@ -14,6 +14,12 @@ const generateAndInsertDemandForecast = async () => {
         await insertData(date, data);
     }
 };
+
+const generateAndInsertDemandForecastDate = async (date) => {
+    const data = generateData(date);
+    await insertData(date, data);
+};
+
 const generateData = (date) => {
     const data = [];
 
@@ -57,4 +63,4 @@ const forecastDemandJob = cron.schedule('0 0 * * *', async () => {
     console.log("> Fin Job demanda pronosticada hora");
 });
 
-module.exports = {forecastDemandJob: forecastDemandJob, generateAndInsertDemandForecast};
+module.exports = {forecastDemandJob: forecastDemandJob, generateAndInsertDemandForecastDate};

@@ -2,6 +2,12 @@ const {RealDemand} = require('../models/demand-real.model');
 const {ForecastDemand} = require('../models/demand-forecast.model');
 const {Op, Sequelize} = require('sequelize');
 const moment = require('moment-timezone');
+const {
+    generateAndInsertDemandForecastDate
+} = require('../cronjobs/forecast-demand.job');
+const {
+    generateAndInsertDemandRealDate
+} = require('../cronjobs/real-demand.job');
 
 exports.getRealDemands = async (req, res) => {
     try {
@@ -132,5 +138,52 @@ exports.getResumeDemands = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({message: 'Error getting generations by date range'});
+    }
+};
+
+exports.saveDemandReal = async (req, res) => {
+    const santiagoTime = moment().tz('America/Santiago');
+    const hour = parseInt(santiagoTime.format('H'));
+    const now = santiagoTime.startOf('day');
+
+    let startDate = moment(req.query.date).startOf('day');
+    let endDate = moment(req.query.endDate ? req.query.endDate : req.query.date).startOf('day');
+
+    startDate = moment.min(startDate, now);
+    endDate = moment.min(endDate, now);
+
+    if (startDate.isSameOrBefore(endDate)) {
+        const currentDate = startDate.clone();
+
+        while (currentDate.isSameOrBefore(endDate)) {
+            if(currentDate.isSame(now)) {
+                await generateAndInsertDemandRealDate(currentDate, hour);
+            } else {
+                await generateAndInsertDemandRealDate(currentDate);
+            }
+            currentDate.add(1, 'day');
+        }
+
+        res.json("Generates sucessfully");
+    } else {
+        res.json('La fecha de inicio no es menor que la fecha de fin.');
+    }
+};
+
+exports.saveDemandForecast = async (req, res) => {
+    const startDate = moment(req.query.date).startOf('day');
+    const endDate = moment(req.query.endDate ? req.query.endDate : req.query.date).startOf('day');
+
+    if (startDate.isSameOrBefore(endDate)) {
+        const currentDate = startDate.clone();
+
+        while (currentDate.isSameOrBefore(endDate)) {
+            await generateAndInsertDemandForecastDate(currentDate);
+            currentDate.add(1, 'day');
+        }
+
+        res.json("Generates sucessfully");
+    } else {
+        res.json('La fecha de inicio no es menor que la fecha de fin.');
     }
 };

@@ -16,10 +16,11 @@ const generateAndInsertGxReal = async () => {
 
 const generateAndInsertGxRealToday = async () => {
     const santiagoTime = moment().tz('America/Santiago');
-    const hour = parseInt(santiagoTime.format('H'));
-    //const santiagoTime = moment().tz('America/Santiago').subtract(1, 'day');
-    //const hour = 24;
+    await generateAndInsertGxRealDate(santiagoTime);
+};
 
+const generateAndInsertGxRealDate = async (santiagoTime, hourParam) => {
+    const hour = hourParam ? hourParam : 24;
     const data = generateData(santiagoTime, hour === 0 ? 24 : hour);
     await insertDataToday(data);
 };
@@ -128,5 +129,5 @@ const realGenerationJobToday = cron.schedule('30 1 * * * *', async () => {
 
 module.exports = {
     realGenerationJob: realGenerationJob, realGenerationJobToday: realGenerationJobToday,
-    generateAndInsertGxReal, generateAndInsertGxRealToday
+    generateAndInsertGxRealDate
 };

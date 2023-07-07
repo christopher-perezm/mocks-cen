@@ -18,9 +18,12 @@ const generateAndInsertDemandRealToday = async () => {
     const santiagoTime = moment().tz('America/Santiago');
     const hour = parseInt(santiagoTime.format('H'));
 
-    //const santiagoTime = moment().tz('America/Santiago').subtract(1, 'day');
-    //const hour = 24;
+    const data = generateData(santiagoTime, hour === 0 ? 24 : hour);
+    await insertDataToday(data);
+};
 
+const generateAndInsertDemandRealDate = async (santiagoTime, hourParam) => {
+    const hour = hourParam ? hourParam : 24;
     const data = generateData(santiagoTime, hour === 0 ? 24 : hour);
     await insertDataToday(data);
 };
@@ -105,5 +108,4 @@ const realDemandJobToday = cron.schedule('0 3 * * * *', async () => {
     await generateAndInsertDemandRealToday();
 });
 
-module.exports = {realDemandJob: realDemandJob, realDemandJobToday: realDemandJobToday,
-    generateAndInsertDemandaReal, generateAndInsertDemandRealToday};
+module.exports = {realDemandJob: realDemandJob, realDemandJobToday: realDemandJobToday, generateAndInsertDemandRealDate};
